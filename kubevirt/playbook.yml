@@ -1,0 +1,103 @@
+---
+- hosts: all
+  become: true
+  environment:
+    PROVIDER: k8s-1.9.3
+  tasks:
+    - name: install kubectl
+      package:
+        name: kubernetes-client
+        state: present
+
+    # get_url requires the module to write into /usr/local/bin
+    - name: install libselinux-python
+      package:
+        name: libselinux-python
+        state: present
+
+    - name: install minikube
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: 0555
+
+    - name: Install libvirt environment
+      package:
+        name: libvirt,libvirt-daemon-kvm,libvirt-client,qemu-kvm
+        state: present
+
+    - name: Configuring groups for {{ ansible_user }}
+      user:
+        name={{ ansible_user }}
+        groups=libvirt
+        append=yes
+      become: true
+
+    - name: configure kvm_intel for nested virtualization
+      copy:
+        content: 'options kvm-intel nested=1'
+        dest: /etc/modprobe.d/kvm_intel.conf
+
+    - name: check if nested virtualization is enabled
+      shell: cat /sys/module/kvm_intel/parameters/nested | grep Y
+      register: nested_check
+      ignore_errors: true
+      become: false
+
+    - name: unload kvm_intel to enable nested virtualization
+      modprobe:
+        name: kvm_intel
+        state: absent
+      when: nested_check is failed
+
+    - name: load kvm_intel to enable nested virtualization
+      modprobe:
+        name: kvm_intel
+        state: present
+
+    - name: Start libvirtd
+      systemd:
+        name: libvirtd
+        enabled: yes
+        state: started
+
+    - name: Autostart default network
+      command: virsh net-autostart default
+
+    - name: install minikube kvm2 driver
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2
+        dest: /usr/local/bin/docker-machine-driver-kvm2
+        mode: 0555
+
+    - name: Check if minikube is running
+      shell: minikube status | grep Running
+      register: minikube_check
+      # grep will exit with 1 when no results found. 
+      # This causes the task not to halt play.
+      ignore_errors: true
+      become: false
+
+    - name: Start minikube
+      command: minikube start --vm-driver kvm2
+      when: minikube_check is failed
+      become: false
+
+    - name: Clone kubevirt
+      git:
+        repo: https://github.com/kubevirt/kubevirt.git
+        dest: kubevirt
+      become: false
+
+    - name: Install docker
+      package:
+        name: docker
+        state: present
+
+    - name: Bring KubeVirt cluster up
+      command: chdir=kubevirt make cluster-up
+      become: false
+
+    - name: Sync KubeVirt cluster
+      command: chdir=kubevirt make cluster-sync
+      become: false
