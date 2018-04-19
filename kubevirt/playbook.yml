@@ -81,6 +81,12 @@
     - stat: path=.kubevirt_deployed
       register: kubevirt_deployed
 
+    - name: shut down old KubeVirt cluster
+      command: chdir=kubevirt make cluster-down
+      become: false
+      ignore_errors: true
+      when: kubevirt_deployed.stat.exists == False
+
     - name: Bring KubeVirt cluster up
       command: chdir=kubevirt make cluster-up
       become: false
