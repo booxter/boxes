@@ -3,6 +3,7 @@
   become: true
   environment:
     PROVIDER: k8s-1.9.3
+    VAGRANT_NUM_NODES: 1
   vars:
     exec_docker: |
       #!/bin/sh
