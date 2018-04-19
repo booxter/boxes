@@ -3,6 +3,10 @@
   become: true
   environment:
     PROVIDER: k8s-1.9.3
+  vars:
+    exec_docker: |
+      #!/bin/sh
+      sudo /usr/bin/docker $*
   tasks:
     - name: install kubectl
       package:
@@ -10,28 +14,41 @@
         state: present
 
     # get_url requires the module to write into /usr/local/bin
-    - name: install libselinux-python
-      package:
-        name: libselinux-python
-        state: present
+    #- name: install libselinux-python
+    #  package:
+    #    name: libselinux-python
+    #    state: present
 
-    - name: install minikube
-      get_url:
-        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-        dest: /usr/local/bin/minikube
-        mode: 0555
+    #- name: install minikube
+    #  get_url:
+    #    url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    #    dest: /usr/local/bin/minikube
+    #    mode: 0755
 
-    - name: Install libvirt environment
-      package:
-        name: libvirt,libvirt-daemon-kvm,libvirt-client,qemu-kvm
-        state: present
+    #- name: Install libvirt environment
+    #  package:
+    #    name: libvirt,libvirt-daemon-kvm,libvirt-client,qemu-kvm
+    #    state: present
 
     - name: Configuring groups for {{ ansible_user }}
+      #groups=libvirt,wheel
       user:
         name={{ ansible_user }}
-        groups=libvirt
+        groups=wheel
         append=yes
       become: true
+
+    - name: configure password-less docker
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        line: '%wheel ALL=(ALL) NOPASSWD: /usr/bin/docker'
+
+    - name: always execute docker via sudo
+      copy:
+        content: '{{ exec_docker }}'
+        dest: /usr/local/bin/docker
+        mode: 0755
 
     - name: configure kvm_intel for nested virtualization
       copy:
@@ -55,33 +72,44 @@
         name: kvm_intel
         state: present
 
-    - name: Start libvirtd
-      systemd:
-        name: libvirtd
-        enabled: yes
-        state: started
+    #- name: Start libvirtd
+    #  systemd:
+    #    name: libvirtd
+    #    enabled: yes
+    #    state: started
 
-    - name: Autostart default network
-      command: virsh net-autostart default
+    #- name: Autostart default network
+    #  command: virsh net-autostart default
 
-    - name: install minikube kvm2 driver
-      get_url:
-        url: https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2
-        dest: /usr/local/bin/docker-machine-driver-kvm2
-        mode: 0555
+    #- name: install minikube kvm2 driver
+    #  get_url:
+    #    url: https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2
+    #    dest: /usr/local/bin/docker-machine-driver-kvm2
+    #    mode: 0755
 
-    - name: Check if minikube is running
-      shell: minikube status | grep Running
-      register: minikube_check
-      # grep will exit with 1 when no results found. 
-      # This causes the task not to halt play.
-      ignore_errors: true
-      become: false
+    #- name: Check if minikube is running
+    #  shell: minikube status | grep cluster:.*Running
+    #  register: minikube_check
+    #  # grep will exit with 1 when no results found. 
+    #  # This causes the task not to halt play.
+    #  ignore_errors: true
+    #  become: false
 
-    - name: Start minikube
-      command: minikube start --vm-driver kvm2
-      when: minikube_check is failed
-      become: false
+    #- name: Delete old minikube cluster
+    #  command: minikube delete
+    #  when: minikube_check is failed
+    #  become: false
+    #  ignore_errors: true
+
+    #- name: Start minikube
+    #  command: minikube start --vm-driver kvm2
+    #  when: minikube_check is failed
+    #  become: false
+
+    - name: install git
+      package:
+        name: git
+        state: present
 
     - name: Clone kubevirt
       git:
@@ -94,10 +122,25 @@
         name: docker
         state: present
 
+    - name: Start docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - stat: path=.kubevirt_deployed
+      register: kubevirt_deployed
+
     - name: Bring KubeVirt cluster up
       command: chdir=kubevirt make cluster-up
       become: false
+      when: kubevirt_deployed.stat.exists == False
 
     - name: Sync KubeVirt cluster
       command: chdir=kubevirt make cluster-sync
       become: false
+      when: kubevirt_deployed.stat.exists == False
+
+    - file:
+        path: .kubevirt_deployed
+        state: touch
