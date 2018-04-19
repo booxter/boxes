@@ -92,3 +92,4 @@
     - file:
         path: .kubevirt_deployed
         state: touch
+      become: false
