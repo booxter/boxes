@@ -63,6 +63,7 @@
       git:
         repo: https://github.com/kubevirt/kubevirt.git
         dest: kubevirt
+      ignore_errors: true
       become: false
 
     - name: Install docker
