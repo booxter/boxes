@@ -1,0 +1,8 @@
+---
+- hosts: all
+  tasks:
+    - name: install kubectl
+      package:
+        name: kubernetes-client
+        state: present
+      become: true

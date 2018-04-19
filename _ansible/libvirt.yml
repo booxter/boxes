@@ -1,0 +1,23 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Install libvirt environment
+      package:
+        name: libvirt,libvirt-daemon-kvm,libvirt-client,qemu-kvm
+        state: present
+
+    - name: Adding {{ ansible_user }} to libvirt group
+      user:
+        name={{ ansible_user }}
+        groups=libvirt
+        append=yes
+
+    - name: Start libvirtd
+      systemd:
+        name: libvirtd
+        enabled: yes
+        state: started
+
+    - name: Autostart default network
+      command: virsh net-autostart default

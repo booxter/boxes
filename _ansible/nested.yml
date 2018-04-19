@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: configure kvm_intel for nested virtualization
+      copy:
+        content: 'options kvm-intel nested=1'
+        dest: /etc/modprobe.d/kvm_intel.conf
+
+    - name: check if nested virtualization is enabled
+      shell: cat /sys/module/kvm_intel/parameters/nested | grep Y
+      register: nested_check
+      ignore_errors: true
+      become: false
+
+    - name: unload kvm_intel to enable nested virtualization
+      modprobe:
+        name: kvm_intel
+        state: absent
+      when: nested_check is failed
+
+    - name: load kvm_intel to enable nested virtualization
+      modprobe:
+        name: kvm_intel
+        state: present

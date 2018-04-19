@@ -1,0 +1,37 @@
+---
+- hosts: all
+  become: true
+  vars:
+    exec_docker: |
+      #!/bin/sh
+      sudo /usr/bin/docker $*
+  tasks:
+    - name: Install docker
+      package:
+        name: docker
+        state: present
+
+    - name: Start docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: configure password-less docker
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        line: '%wheel ALL=(ALL) NOPASSWD: /usr/bin/docker'
+
+    - name: always execute docker via sudo
+      copy:
+        content: '{{ exec_docker }}'
+        dest: /usr/local/bin/docker
+        mode: 0755
+
+    - name: Adding {{ ansible_user }} to wheel group
+      user:
+        name={{ ansible_user }}
+        groups=wheel
+        append=yes
+      become: true

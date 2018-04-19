@@ -1,0 +1,39 @@
+---
+- hosts: all
+  tasks:
+    # get_url requires the module to write into /usr/local/bin
+    - name: install libselinux-python
+      package:
+        name: libselinux-python
+        state: present
+      become: true
+
+    - name: install minikube
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: 0755
+      become: true
+
+    - name: install minikube kvm2 driver
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/docker-machine-driver-kvm2
+        dest: /usr/local/bin/docker-machine-driver-kvm2
+        mode: 0755
+      become: true
+
+    - name: Check if minikube is running
+      shell: minikube status | grep cluster:.*Running
+      register: minikube_check
+      # grep will exit with 1 when no results found. 
+      # This causes the task not to halt play.
+      ignore_errors: true
+
+    - name: Delete old minikube cluster
+      command: minikube delete
+      when: minikube_check is failed
+      ignore_errors: true
+
+    - name: Start minikube
+      command: minikube start --vm-driver kvm2
+      when: minikube_check is failed

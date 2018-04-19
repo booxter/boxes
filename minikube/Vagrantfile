@@ -10,11 +10,10 @@ Vagrant.configure("2") do |config|
   config.vm.provider :libvirt do |libvirt|
     libvirt.cpu_mode = "host-passthrough"
     libvirt.nested = true
-    libvirt.memory = "8192"
-    libvirt.machine_virtual_size = 80
+    libvirt.memory = "4096"
   end
 
-  for playbook in ["dev", "nested", "docker", "kubectl", "kubevirt"]
+  for playbook in ["dev", "nested", "libvirt", "kubectl", "minikube"]
     config.vm.provision "ansible" do |ansible|
       ansible.verbose = "v"
       ansible.playbook = "../_ansible/#{playbook}.yml"

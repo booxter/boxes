@@ -1,0 +1,71 @@
+---
+- hosts: all
+  become: true
+  vars:
+    provider: k8s-1.9.3
+    vagrant_num_nodes: 1
+    cluster_env:
+      PROVIDER: '{{ provider }}'
+      VAGRANT_NUM_NODES: '{{ vagrant_num_nodes }}'
+  tasks:
+    - name: install git
+      package:
+        name: git
+        state: present
+
+    - name: Clone kubevirt
+      git:
+        repo: https://github.com/kubevirt/kubevirt.git
+        dest: kubevirt
+      ignore_errors: true
+      become: false
+
+    - name: check if provider is configured
+      shell: grep "^PROVIDER" .bashrc
+      register: test_provider_grep
+      ignore_errors: true
+      become: false
+
+    - name: configure default kubevirt provider
+      lineinfile: dest=.bashrc line="export PROVIDER={{ provider }}"
+      when: test_provider_grep.rc == 1
+      become: false
+
+    - name: check if VAGRANT_NUM_NODES is configured
+      shell: grep "^VAGRANT_NUM_NODES" .bashrc
+      register: test_vagrant_num_nodes_grep
+      ignore_errors: true
+      become: false
+
+    - name: configure default number of vagrant nodes
+      lineinfile: dest=.bashrc line="export VAGRANT_NUM_NODES={{ vagrant_num_nodes }}"
+      when: test_provider_grep.rc == 1
+      become: false
+
+    - stat: path=.kubevirt_deployed
+      register: kubevirt_deployed
+      become: false
+
+    - name: shut down old KubeVirt cluster
+      command: chdir=kubevirt make cluster-down
+      become: false
+      ignore_errors: true
+      when: kubevirt_deployed.stat.exists == False
+      environment: "{{ cluster_env }}"
+
+    - name: Bring KubeVirt cluster up
+      command: chdir=kubevirt make cluster-up
+      become: false
+      when: kubevirt_deployed.stat.exists == False
+      environment: "{{ cluster_env }}"
+
+    - name: Sync KubeVirt cluster
+      command: chdir=kubevirt make cluster-sync
+      become: false
+      when: kubevirt_deployed.stat.exists == False
+      environment: "{{ cluster_env }}"
+
+    - file:
+        path: .kubevirt_deployed
+        state: touch
+      become: false
