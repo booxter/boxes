@@ -1,0 +1,18 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: install dev tools
+      package:
+        name: git,tig,vim
+        state: present
+
+    - name: install debug tools
+      package:
+        name: psmisc
+        state: present
+
+    - name: install networking tools
+      package:
+        name: bridge-utils,lsof,tcpdump,telnet
+        state: present
