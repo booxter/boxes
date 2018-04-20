@@ -7,8 +7,32 @@
         state: present
       become: true
 
-    - name: clone ct
+    - name: clone repos
       git:
-        repo: git@github.com:booxter/ct.git
-        dest: ct
+        repo: git@github.com:booxter/{{ item }}.git
+        dest: "{{ item }}"
       ignore_errors: true
+      with_items:
+        - ct
+        - ccxt
+        - universal-portfolios
+
+    - name: install native dependencies
+      package:
+        name: gcc,python2-devel,redhat-rpm-config,python2-tkinter,gnuplot,bc
+        state: present
+      become: true
+
+    - name: prepare ct venv
+      command: tox -e py27 --notest
+      args:
+        chdir: ct
+        creates: .tox/py27/bin/python
+
+    - name: install untracked dependencies
+      command: .tox/py27/bin/pip install -e ../{{ item }}
+      args:
+        chdir: ct
+      with_items:
+        - ccxt/python
+        - universal-portfolios
