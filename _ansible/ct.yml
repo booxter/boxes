@@ -1,0 +1,14 @@
+---
+- hosts: all
+  tasks:
+    - name: install git
+      package:
+        name: git
+        state: present
+      become: true
+
+    - name: clone ct
+      git:
+        repo: git@github.com:booxter/ct.git
+        dest: ct
+      ignore_errors: true

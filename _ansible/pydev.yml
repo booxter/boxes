@@ -1,0 +1,8 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: install pydev tools
+      package:
+        name: python3-tox
+        state: present

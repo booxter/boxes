@@ -16,3 +16,9 @@
       package:
         name: bridge-utils,lsof,tcpdump,telnet
         state: present
+
+    - name: register github fingerprint
+      lineinfile:
+        dest: .ssh/known_hosts
+        line: "{{ lookup('file', '../_files/ssh_keys/github.com') }}"
+        create: yes
