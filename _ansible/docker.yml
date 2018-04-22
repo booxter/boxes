@@ -6,12 +6,12 @@
       #!/bin/sh
       sudo /usr/bin/docker $*
   tasks:
-    - name: Install docker
+    - name: install docker
       package:
         name: docker
         state: present
 
-    - name: Start docker
+    - name: start docker
       systemd:
         name: docker
         enabled: yes
@@ -29,7 +29,7 @@
         dest: /usr/local/bin/docker
         mode: 0755
 
-    - name: Adding {{ ansible_user }} to wheel group
+    - name: adding {{ ansible_user }} to wheel group
       user:
         name={{ ansible_user }}
         groups=wheel

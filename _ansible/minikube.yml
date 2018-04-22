@@ -22,18 +22,18 @@
         mode: 0755
       become: true
 
-    - name: Check if minikube is running
+    - name: check if minikube is running
       shell: minikube status | grep cluster:.*Running
       register: minikube_check
       # grep will exit with 1 when no results found. 
       # This causes the task not to halt play.
       ignore_errors: true
 
-    - name: Delete old minikube cluster
+    - name: delete old minikube cluster
       command: minikube delete
       when: minikube_check is failed
       ignore_errors: true
 
-    - name: Start minikube
+    - name: start minikube
       command: minikube start --vm-driver kvm2
       when: minikube_check is failed
