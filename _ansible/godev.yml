@@ -1,0 +1,26 @@
+---
+- hosts: all
+  tasks:
+    - name: install godev tools
+      package:
+        name: golang,golang-googlecode-tools-goimports
+        state: present
+      become: true
+
+    - name: create $GOPATH
+      file: path=go state=directory
+
+    - name: configure $PATH for go tools
+      lineinfile: dest=.bashrc line="export PATH=$PATH:$HOME/go/bin"
+
+    - name: install motion
+      command: go get github.com/fatih/motion
+
+    - name: install gometalinter
+      command: go get github.com/alecthomas/gometalinter
+
+    - name: install missing go binaries
+      command: vim +GoInstallBinaries +qall
+
+    - name: install gometalinter tools
+      command: gometalinter --install
