@@ -1,24 +1,39 @@
 ---
 - hosts: all
-  become: true
   tasks:
     - name: install dev tools
       package:
         name: git,tig,vim
         state: present
+      become: true
 
     - name: install debug tools
       package:
         name: psmisc
         state: present
+      become: true
 
     - name: install networking tools
       package:
         name: bridge-utils,lsof,tcpdump,telnet
         state: present
+      become: true
 
     - name: register github fingerprint
       lineinfile:
         dest: .ssh/known_hosts
         line: "{{ lookup('file', '../_files/ssh_keys/github.com') }}"
         create: yes
+
+    - name: install Vundle
+      git:
+        repo: https://github.com/VundleVim/Vundle.vim.git
+        dest: .vim/bundle/Vundle.vim
+
+    - name: copy vimrc
+      copy:
+        src: ../_files/vimrc
+        dest: .vimrc
+
+    - name: install vundle plugins
+      command: vim +PluginInstall +qall
