@@ -3,7 +3,7 @@
   tasks:
     - name: install dev tools
       package:
-        name: git,tig,vim
+        name: git,tig,vim,tmux
         state: present
       become: true
 
