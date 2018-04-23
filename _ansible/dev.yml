@@ -37,3 +37,9 @@
 
     - name: install vundle plugins
       command: vim +PluginInstall +qall
+
+    - name: set default git email
+      command: git config --global user.email "ihar.hrachyshka@gmail.com"
+
+    - name: set default git name
+      command: git config --global user.name "Ihar Hrachyshka"

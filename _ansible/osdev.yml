@@ -1,0 +1,26 @@
+---
+- hosts: all
+  tasks:
+    - name: install osdev tools
+      package:
+        name: git-review
+        state: present
+      become: true
+
+    - name: create git dir
+      file: path=git state=directory
+
+    - name: clone neutron
+      git:
+        repo: https://github.com/openstack/neutron.git
+        dest: git/neutron
+      ignore_errors: true
+
+    - name: register review.openstack.org fingerprint
+      lineinfile:
+        dest: .ssh/known_hosts
+        line: "{{ lookup('file', '../_files/ssh_keys/review.openstack.org') }}"
+        create: yes
+
+    - name: set default gerrit user name
+      command: git config --global --add gitreview.username "ihrachys"
