@@ -3,7 +3,7 @@
   tasks:
     - name: install dev tools
       package:
-        name: git,tig,vim,tmux,gcc,redhat-rpm-config
+        name: git,tig,vim,tmux,gcc,redhat-rpm-config,ctags
         state: present
       become: true
 
