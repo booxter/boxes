@@ -4,5 +4,5 @@
   tasks:
     - name: install pydev tools
       package:
-        name: python3-tox
+        name: python3-tox,python2-devel,python3-devel
         state: present
