@@ -3,9 +3,17 @@
   tasks:
     - name: install dev tools
       package:
-        name: git,tig,vim,tmux,gcc,redhat-rpm-config,ctags
+        name: git,tig,vim,tmux,gcc,ctags
         state: present
       become: true
+
+    - name: install dev tools (redhat)
+      package:
+        name: redhat-rpm-config
+        state: present
+      become: true
+      when:
+        - ansible_os_family == "RedHat"
 
     - name: install debug tools
       package:
@@ -33,7 +41,7 @@
     - name: copy vimrc
       copy:
         src: ../_files/vimrc
-        dest: .vimrc
+        dest: /home/{{ ansible_user }}/.vimrc
 
     - name: install vundle plugins
       command: vim +PluginInstall +qall
