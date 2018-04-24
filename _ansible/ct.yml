@@ -19,7 +19,7 @@
 
     - name: install native dependencies
       package:
-        name: gcc,python2-devel,redhat-rpm-config,python2-tkinter,gnuplot,bc
+        name: python2-tkinter,gnuplot,bc
         state: present
       become: true
 
