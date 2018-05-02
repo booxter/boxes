@@ -3,7 +3,7 @@
   tasks:
     - name: install dev tools
       package:
-        name: git,tig,vim,tmux,gcc,ctags
+        name: git,tig,vim,tmux,gcc,ctags,vagrant,libvirt-client,ansible
         state: present
       become: true
 
