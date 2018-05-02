@@ -20,7 +20,7 @@
       command: go get github.com/alecthomas/gometalinter
 
     - name: install missing go binaries
-      command: vim +GoInstallBinaries +qall
+      command: vim "+set nomore" +GoInstallBinaries +qall
 
     - name: install gometalinter tools
       command: gometalinter --install
