@@ -1,0 +1,23 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: install gnome UI
+      package:
+        name: gnome
+        state: present
+
+    - name: enable graphical target
+      command: systemctl set-default graphical.target
+
+    - name: start gui
+      systemd:
+        name: graphical.target
+        enabled: yes
+        state: started
+
+    - name: start gdm
+      systemd:
+        name: gdm
+        enabled: yes
+        state: started

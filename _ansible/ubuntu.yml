@@ -1,0 +1,6 @@
+---
+- hosts: all
+  tasks:
+    - name: set default locale to en_US.UTF-8
+      command: update-locale LANG=en_US.UTF-8
+      become: true
