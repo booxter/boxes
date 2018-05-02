@@ -1,0 +1,77 @@
+---
+- hosts: all
+  become: true
+  vars:
+    exec_docker: |
+      #!/bin/sh
+      sudo /usr/bin/docker $*
+  tasks:
+    - name: upgrade all packages
+      dnf:
+        name: "*"
+        state: latest
+
+    - name: prepare virtualization environment
+      dnf:
+        name: libvirt-daemon-kvm,docker,origin
+        state: latest
+
+    # copy requires the module to write into /etc/modprobe.d/kvm_intel.conf
+    - name: install libselinux-python
+      package:
+        name: libselinux-python
+        state: present
+
+    - name: configure kvm_intel for nested virtualization
+      copy:
+        content: 'options kvm-intel nested=1'
+        dest: /etc/modprobe.d/kvm_intel.conf
+
+    - name: check if nested virtualization is enabled
+      shell: cat /sys/module/kvm_intel/parameters/nested | grep Y
+      register: nested_check
+      ignore_errors: true
+      become: false
+
+    - name: unload kvm_intel to enable nested virtualization
+      modprobe:
+        name: kvm_intel
+        state: absent
+      when: nested_check is failed
+
+    - name: load kvm_intel to enable nested virtualization
+      modprobe:
+        name: kvm_intel
+        state: present
+
+    - name: start libvirtd
+      systemd:
+        name: libvirtd
+        state: started
+        enabled: yes
+
+    # todo: unduplicate with box repo
+    - name: start docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    # todo: unduplicate with box repo
+    - name: configure password-less docker
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        line: '%wheel ALL=(ALL) NOPASSWD: /usr/bin/docker'
+
+    # todo: unduplicate with box repo
+    - name: always execute docker via sudo
+      copy:
+        content: '{{ exec_docker }}'
+        dest: /usr/local/bin/docker
+        mode: 0755
+
+    - name: install Ansible
+      dnf:
+        name: ansible
+        state: latest

@@ -1,0 +1,36 @@
+---
+- hosts: all
+  tasks:
+    - name: install dev tools
+      dnf:
+        name: vim,git,tig,tmux
+        state: latest
+      become: true
+
+    - name: install virt tools
+      dnf:
+        name: libvirt-client,vagrant
+        state: latest
+      become: true
+
+    - name: Configuring groups for {{ ansible_user }}
+      user:
+          name={{ ansible_user }}
+          groups=libvirt
+          append=yes
+      become: true
+
+    # todo: unduplicate with box repo
+    - name: adding {{ ansible_user }} to wheel group
+      user:
+        name={{ ansible_user }}
+        groups=wheel
+        append=yes
+      become: true
+
+    - name: clone vagrant boxes
+      git:
+        repo: git@github.com:booxter/boxes.git
+        dest: boxes
+        accept_hostkey: yes
+      ignore_errors: true
