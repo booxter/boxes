@@ -9,30 +9,18 @@
 
     - name: clone repos
       git:
-        repo: git@github.com:booxter/{{ item }}.git
-        dest: "{{ item }}"
+        repo: git@github.com:booxter/ct.git
+        dest: "ct"
       ignore_errors: true
-      with_items:
-        - ct
-        - ccxt
-        - universal-portfolios
 
     - name: install native dependencies
       package:
-        name: python2-tkinter,python3-tkinter,gnuplot,bc
+        name: python3-tkinter,gnuplot,bc
         state: present
       become: true
 
     - name: prepare ct venv
-      command: tox -e py27 --notest
+      command: tox -e py36 --notest
       args:
         chdir: ct
-        creates: .tox/py27/bin/python
-
-    - name: install untracked dependencies
-      command: .tox/py27/bin/pip install -e ../{{ item }}
-      args:
-        chdir: ct
-      with_items:
-        - ccxt/python
-        - universal-portfolios
+        creates: .tox/py36/bin/python
