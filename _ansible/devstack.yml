@@ -1,0 +1,15 @@
+---
+- hosts: all
+  tasks:
+    - name: fetch devstack git
+      git: repo=https://git.openstack.org/openstack-dev/devstack dest=~/devstack
+    
+    - name: configure local.conf
+      copy:
+        src: ../_files/devstack-local.conf
+        dest: /home/{{ ansible_user }}/devstack/local.conf
+    
+    - name: stack.sh
+      command: ./stack.sh
+      args:
+        chdir: /home/{{ ansible_user }}/devstack
