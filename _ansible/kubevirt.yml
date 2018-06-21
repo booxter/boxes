@@ -3,10 +3,10 @@
   become: true
   vars:
     provider: k8s-1.9.3
-    vagrant_num_nodes: 1
+    kubevirt_num_nodes: 2
     cluster_env:
-      PROVIDER: '{{ provider }}'
-      VAGRANT_NUM_NODES: '{{ vagrant_num_nodes }}'
+      KUBEVIRT_PROVIDER: '{{ provider }}'
+      KUBEVIRT_NUM_NODES: '{{ kubevirt_num_nodes }}'
   tasks:
     - name: install git
       package:
@@ -21,24 +21,24 @@
       become: false
 
     - name: check if provider is configured
-      shell: grep "^PROVIDER" .bashrc
+      shell: grep "^KUBEVIRT_PROVIDER" .bashrc
       register: test_provider_grep
       ignore_errors: true
       become: false
 
     - name: configure default kubevirt provider
-      lineinfile: dest=.bashrc line="export PROVIDER={{ provider }}"
+      lineinfile: dest=.bashrc line="export KUBEVIRT_PROVIDER={{ provider }}"
       when: test_provider_grep.rc == 1
       become: false
 
-    - name: check if VAGRANT_NUM_NODES is configured
-      shell: grep "^VAGRANT_NUM_NODES" .bashrc
+    - name: check if KUBEVIRT_NUM_NODES is configured
+      shell: grep "^KUBEVIRT_NUM_NODES" .bashrc
       register: test_vagrant_num_nodes_grep
       ignore_errors: true
       become: false
 
     - name: configure default number of vagrant nodes
-      lineinfile: dest=.bashrc line="export VAGRANT_NUM_NODES={{ vagrant_num_nodes }}"
+      lineinfile: dest=.bashrc line="export KUBEVIRT_NUM_NODES={{ kubevirt_num_nodes }}"
       when: test_provider_grep.rc == 1
       become: false
 
