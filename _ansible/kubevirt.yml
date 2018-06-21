@@ -2,7 +2,7 @@
 - hosts: all
   become: true
   vars:
-    provider: k8s-1.9.3
+    provider: k8s-1.10.4
     kubevirt_num_nodes: 2
     cluster_env:
       KUBEVIRT_PROVIDER: '{{ provider }}'
