@@ -5,10 +5,13 @@
     exec_docker: |
       #!/bin/sh
       sudo /usr/bin/docker $*
+    exec_docker_compose: |
+      #!/bin/sh
+      sudo /usr/bin/docker-compose $*
   tasks:
     - name: install docker
       package:
-        name: docker
+        name: docker,docker-compose
         state: present
 
     - name: start docker
@@ -23,10 +26,22 @@
         state: present
         line: '%wheel ALL=(ALL) NOPASSWD: /usr/bin/docker'
 
+    - name: configure password-less docker-compose
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        line: '%wheel ALL=(ALL) NOPASSWD: /usr/bin/docker-compose'
+
     - name: always execute docker via sudo
       copy:
         content: '{{ exec_docker }}'
         dest: /usr/local/bin/docker
+        mode: 0755
+
+    - name: always execute docker-compose via sudo
+      copy:
+        content: '{{ exec_docker_compose }}'
+        dest: /usr/local/bin/docker-compose
         mode: 0755
 
     - name: adding {{ ansible_user }} to wheel group
