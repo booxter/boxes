@@ -1,9 +1,13 @@
 ---
 - hosts: all
   tasks:
+    - name: upgrade all packages
+      package: name=* state=latest
+      become: true
+
     - name: install dev tools
       package:
-        name: git,tig,vim,tmux,gcc,ctags,vagrant,libvirt-client,ansible,buildah
+        name: git,tig,vim-enhanced,tmux,gcc,ctags,vagrant,libvirt-client,ansible,buildah
         state: present
       become: true
 
