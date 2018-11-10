@@ -9,8 +9,11 @@
 
     - name: clone repos
       git:
-        repo: git@github.com:booxter/ct.git
-        dest: "ct"
+        repo: git@github.com:booxter/{{item}}.git
+        dest: "{{item}}"
+      with_items:
+        - ct
+        - ibrest
       ignore_errors: true
 
     - name: install native dependencies
