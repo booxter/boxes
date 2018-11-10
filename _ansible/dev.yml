@@ -55,3 +55,27 @@
 
     - name: set default git name
       command: git config --global user.name "Ihar Hrachyshka"
+
+    - name: enable gcloud sdk repo
+      yum_repository:
+        name: google-cloud-sdk
+        description: Google Cloud SDK
+        baseurl: https://packages.cloud.google.com/yum/repos/cloud-sdk-el7-x86_64
+        repo_gpgcheck: yes
+        gpgcheck: yes
+        gpgkey:
+          - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+          - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      become: true
+
+    - name: install gcloud sdk
+      package:
+        name: google-cloud-sdk
+        state: present
+      become: true
+
+    - name: install kubectl
+      package:
+        name: kubectl
+        state: present
+      become: true
