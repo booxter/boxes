@@ -14,6 +14,7 @@
       with_items:
         - ct
         - ibrest
+        - ib_tws_docker
       ignore_errors: true
 
     - name: install native dependencies
